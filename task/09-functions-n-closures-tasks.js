@@ -25,10 +25,8 @@
  *
  */
 export function getComposition(f, g) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  return x => f(g(x));
 }
-
 
 /**
  * Returns the math power function with the specified exponent
@@ -47,8 +45,7 @@ export function getComposition(f, g) {
  *
  */
 export function getPowerFunction(exponent) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  return x => Math.pow(x, exponent);
 }
 
 
@@ -65,9 +62,13 @@ export function getPowerFunction(exponent) {
  *   getPolynom(8)     => y = 8
  *   getPolynom()      => null
  */
-export function getPolynom() {
-  /* implement your code here */
-  throw new Error('Not implemented');
+export function getPolynom(...args) {
+  args.reverse();
+  return x => {
+    return args.reduce((previous, current, index) => {
+      return previous + current * Math.pow(x, index);
+    }, 0);
+  };
 }
 
 
@@ -86,8 +87,8 @@ export function getPolynom() {
  *   memoizer() => the same random number  (next run, returns the previous cached result)
  */
 export function memoize(func) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  const result = func();
+  return () => result;
 }
 
 
@@ -107,10 +108,16 @@ export function memoize(func) {
  * retryer() => 2
  */
 export function retry(func, attempts) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  return function() {
+    for (let i = 0; i <= attempts; i++) {
+      try {
+        return func();
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+  };
 }
-
 
 /**
  * Returns the logging wrapper for the specified method,
@@ -136,8 +143,16 @@ export function retry(func, attempts) {
  *
  */
 export function logger(func, logFunc) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  return function(...args) {
+    let callString = JSON.stringify(args);
+    callString = callString.substr(1, callString.length - 2);
+    callString = `${func.name}(${callString})`;
+    logFunc(callString + ' starts');
+    let result = func.apply(null, args);
+    logFunc(callString + ' ends');
+
+    return result;
+  };
 }
 
 
@@ -155,13 +170,17 @@ export function logger(func, logFunc) {
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
 export function partialUsingArguments(fn) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  let args = Array.from(arguments);
+  args.splice(0, 1);
+  return function () {
+    args = args.concat(Array.from(arguments));
+    return fn.apply(null, args);
+  };
 }
 
 
 /**
- * Returns the id generator function that returns next integer starting from specified 
+ * Returns the id generator function that returns next integer starting from specified
  * number every time when invoking.
  *
  * @param {Number} startFrom
@@ -178,6 +197,5 @@ export function partialUsingArguments(fn) {
  *   getId10() => 11
  */
 export function getIdGeneratorFunction(startFrom) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  return () => startFrom++;
 }

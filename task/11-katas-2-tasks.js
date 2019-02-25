@@ -36,11 +36,54 @@
  *
  */
 export function parseBankAccount(bankAccount) {
+  let str = '';
+  let res = '';
+  let tmp = [];
+  let number = bankAccount.split('\n');
+  number = number.map(
+    function(el, i) {
+      return el.split('');
+    }
+  );
+  let numbers = ['246789', '69', '25678', '25689', '4569', '24589', '245789', '269', '2456789', '245689'];
+  number.map(
+    function(el, i, arr) {
+      if (i === 0) {
+        el.map(
+          function(e, j, ar) {
+            if (j % 3 === 0) {
+              tmp.push(ar[j]);
+              tmp.push(ar[j+1]);
+              tmp.push(ar[j+2]);
+              tmp.push(arr[i+1][j]);
+              tmp.push(arr[i+1][j+1]);
+              tmp.push(arr[i+1][j+2]);
+              tmp.push(arr[i+2][j]);
+              tmp.push(arr[i+2][j+1]);
+              tmp.push(arr[i+2][j+2]);
+              tmp.map(
+                function(zz, y) {
+                  if (zz ==='_' || zz === '|') {
+                    str += '' + (y+1);
+                  }
+
+                }
+              );
+              res += '' + numbers.indexOf(str);
+              tmp = [];
+              str = '';
+            }
+
+
+          }
+        );
+      }
+    }
+  );
+  return res;
   /* implement your code here */
-  throw new Error('Not implemented');
+  //throw new Error('Not implemented');
 }
-
-
 /**
  * Returns the string, but with line breaks inserted at just the right places to make
  * sure that no line is longer than the specified column number.
@@ -69,10 +112,22 @@ export function parseBankAccount(bankAccount) {
  *      'characters.'
  */
 export function* wrapText(text, columns) {
+  let arr = text.split(' ');
+  let temp = [];
+  let j = 0;
+  while (j < arr.length) {
+    if(temp.join(' ').length + arr[j].length < columns) {
+      temp.push(arr[j]);
+      j++;
+    } else {
+      yield temp.join(' ');
+      temp = [];
+    }
+  }
+  yield temp.join(' ');
   /* implement your code here */
-  throw new Error('Not implemented');
+  //throw new Error('Not implemented');
 }
-
 
 /**
  * Returns the rank of the specified poker hand.
@@ -107,10 +162,69 @@ export const PokerRank = {
 };
 
 export function getPokerHandRank(hand) {
-  /* implement your code here */
-  throw new Error('Not implemented');
-}
+  function get(hand) {
+    const _ranks = 'A234567891JQKA',
+      suits = [],
+      ranks = {
+        count: [],
+        values: [],
+        sorted: []
+      };
 
+    for (let v of hand) {
+      if (ranks.values.indexOf(v[0]) < 0) {
+        ranks.values.push(v[0]);
+        ranks.count.push(1);
+      } else ranks.count[ranks.values.indexOf(v[0])]++;
+
+      if (suits.indexOf(v.slice(-1)) < 0) suits.push(v.slice(-1));
+    }
+    ranks.sorted = ranks.values.sort(
+      (a, b) => _ranks.indexOf(a) - _ranks.indexOf(b)
+    );
+    if (ranks.sorted[0] === 'A' && ranks.sorted[1] !== '2') {
+      ranks.sorted.splice(0, 1);
+      ranks.sorted.push('A');
+    }
+
+    this.getCount = function(cnt) {
+      let res = 0;
+      for (let v of ranks.count) if (v === cnt) res++;
+      return res;
+    };
+
+    this.isFlush = function() {
+      return suits.length === 1;
+    };
+
+    this.isStraight = function() {
+      if (ranks.sorted.length < 5) return false;
+      for (let i = 1; i < 5; i++) {
+        if (
+          _ranks.indexOf(ranks.sorted[i - 1]) + 1 !==
+            _ranks.indexOf(ranks.sorted[i]) &&
+          _ranks.indexOf(ranks.sorted[i - 1]) + 1 !==
+            _ranks.lastIndexOf(ranks.sorted[i])
+        ) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }
+
+  hand = new get(hand);
+
+  if (hand.isFlush() && hand.isStraight()) return PokerRank.StraightFlush;
+  else if (hand.getCount(4)) return PokerRank.FourOfKind;
+  else if (hand.getCount(3) && hand.getCount(2)) return PokerRank.FullHouse;
+  else if (hand.isFlush()) return PokerRank.Flush;
+  else if (hand.isStraight()) return PokerRank.Straight;
+  else if (hand.getCount(3)) return PokerRank.ThreeOfKind;
+  else if (hand.getCount(2) === 2) return PokerRank.TwoPairs;
+  else if (hand.getCount(2)) return PokerRank.OnePair;
+  else return PokerRank.HighCard;
+}
 
 /**
  * Returns the rectangles sequence of specified figure.
@@ -144,6 +258,74 @@ export function getPokerHandRank(hand) {
  *    '+-------------+\n'
  */
 export function* getFigureRectangles(figure) {
-  /* implement your code here */
-  throw new Error('Not implemented');
+  figure = figure.split('\n');
+
+  function myLoop(row, col, dRow, dCol, s) {
+    let i;
+    if (dRow) {
+      for (i = row + dRow; i < figure.length && i >= 0; i += dRow) {
+        if (
+          figure[i][col] === '+' &&
+           (figure[i][col - dRow] === '+' || figure[i][col - dRow] === s)
+        ) {
+          return i;
+        } else if (figure[i][col] === ' ') return false;
+      }
+    }
+    if (dCol && figure[row + dCol]) {
+      for (i = col + dCol; i < figure[row].length && i >= 0; i += dCol) {
+        if (
+          figure[row][i] === '+' &&
+           (figure[row + dCol][i] === '+' || figure[row + dCol][i] === s)
+        ) {
+          return i;
+        } else if (figure[row][i] === ' ') return false;
+      }
+    }
+    return false;
+  }
+
+  function rec(row, col) {
+    let _col, _row, resultCol, resultRow;
+
+    _col = myLoop(row, col, 0, 1, '|');
+    if (_col === false) return false;
+    _row = myLoop(row, _col, 1, 0, '-');
+    if (_row === false) return false;
+    resultCol = _col;
+    resultRow = _row;
+
+    _col = myLoop(_row, _col, 0, -1, '|');
+    if (_col === false) return false;
+    _row = myLoop(_row, _col, -1, 0, '-');
+    if (_row === false) return false;
+
+    if (_row === row && _col === col) {
+      return {
+        width: resultCol - col + 1,
+        height: resultRow - row + 1
+      };
+    } else return false;
+  }
+
+  function getFigure(obj) {
+    var line = '+' + '-'.repeat(obj.width - 2) + '+\n',
+      result = line;
+    result += ('|' + ' '.repeat(obj.width - 2) + '|\n').repeat(obj.height - 2);
+    return result + line;
+  }
+
+  for (let i = 0; i < figure.length; i++) {
+    for (let j = 0; j < figure[i].length; j++) {
+      if (
+        figure[i][j] === '+' &&
+         figure[i + 1] &&
+         (figure[i + 1][j] === '|' || figure[i + 1][j] === '+') &&
+         (figure[i][j + 1] === '-' || figure[i][j + 1] === '+')
+      ) {
+        let obj = rec(i, j);
+        if (obj) yield getFigure(obj);
+      }
+    }
+  }
 }
